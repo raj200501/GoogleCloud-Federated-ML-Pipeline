@@ -1,0 +1,5 @@
+project_id: your-gcp-project-id
+region: us-central1
+bucket_name: ml-pipeline-bucket
+model_name: ml-model
+cloud_run_service_name: ml-model-service
