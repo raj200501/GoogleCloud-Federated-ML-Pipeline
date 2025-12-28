@@ -31,3 +31,27 @@ model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test))
 
 # Save the model
 model.save(args.output_path + '/model.h5')
+
+# Save lightweight training metadata for visibility in local/offline mode
+try:
+    import json
+    import os
+
+    labels = list(y)
+    total = len(labels)
+    ones = sum(1 for v in labels if v == 1)
+    zeros = total - ones
+    majority = max(ones, zeros)
+    baseline_accuracy = (majority / total) if total else 0
+
+    metrics = {
+        "samples": total,
+        "class_balance": {"zeros": zeros, "ones": ones},
+        "baseline_accuracy": round(baseline_accuracy, 4),
+    }
+
+    os.makedirs(args.output_path, exist_ok=True)
+    with open(os.path.join(args.output_path, "metrics.json"), "w") as handle:
+        json.dump(metrics, handle, indent=2)
+except Exception:
+    pass
