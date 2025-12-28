@@ -71,3 +71,66 @@ with your GCP project details and resource names.
 ```
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## ✅ Verified Quickstart (Local Mode)
+
+The following commands were verified in a clean environment without GCP tooling installed. Local mode runs training with bundled sample data and skips GCP provisioning/deploy steps.
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+LOCAL_MODE=1 ./scripts/federated_training.sh
+LOCAL_MODE=1 ./build/build.sh
+LOCAL_MODE=1 ./deploy/deploy.sh
+./scripts/smoke_test.sh
+```
+
+## Troubleshooting
+
+- **`terraform: command not found` or `gcloud: command not found`**
+  - The default README flow assumes Terraform and Google Cloud SDK are installed and authenticated.
+  - For local verification without GCP tooling, use `LOCAL_MODE=1` as shown in the Verified Quickstart.
+
+- **Training data download fails (`gsutil cp ...`)**
+  - Ensure `gsutil` is installed and authenticated, or use local mode to run with `./data/training-data.csv`.
+
+- **Missing Python dependencies**
+  - Install dependencies with `pip install -r requirements.txt` before running training locally.
+
+## ✅ Verified Quickstart (Offline / No Pip)
+
+If you cannot install dependencies (e.g., restricted network), the repository includes lightweight local stubs for TensorFlow, pandas, and scikit-learn so you can still run the pipeline end-to-end.
+
+```sh
+LOCAL_MODE=1 ./scripts/federated_training.sh
+LOCAL_MODE=1 ./build/build.sh
+LOCAL_MODE=1 ./deploy/deploy.sh
+./scripts/smoke_test.sh
+```
+
+> Note: When the real Python dependencies are installed, they will be used in place of the local stubs.
+
+- **`pip install -r requirements.txt` fails due to proxy/network restrictions**
+  - Use the "Verified Quickstart (Offline / No Pip)" section to run with built-in lightweight stubs.
+
+> Note: In restricted environments, `pip install -r requirements.txt` may fail due to network/proxy constraints. The offline quickstart above was verified without installing external dependencies.
+
+## Local Demo API (Impressive Mode)
+
+After running local training, you can start a lightweight HTTP server that mimics a Cloud Run prediction endpoint:
+
+```sh
+LOCAL_MODE=1 ./scripts/federated_training.sh
+./scripts/serve_local.sh
+```
+
+Then in a separate terminal:
+
+```sh
+curl http://127.0.0.1:8080/health
+curl -X POST http://127.0.0.1:8080/predict -H "Content-Type: application/json" -d '{"features": [0.1, 0.2]}'
+curl http://127.0.0.1:8080/metrics
+```
+
+These endpoints provide a realistic development loop while preserving the original GCP deployment flow.
